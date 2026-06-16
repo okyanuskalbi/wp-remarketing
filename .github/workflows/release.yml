@@ -1,36 +1,59 @@
 name: Release
 
+# main'e her push'ta eklenti header'ındaki sürüm okunur. O sürüm için tag
+# henüz yoksa otomatik tag atılır ve zip eklenmiş bir GitHub Release yayınlanır.
+# Sürümü yükseltmek için tek yapman gereken wp-remarketing.php'deki "Version:"
+# alanını artırıp main'e push'lamak. workflow_dispatch ile elle de tetiklenebilir.
+
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   release:
-    name: Build & publish release
+    name: Auto tag & release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tag'leri görebilmek için tüm geçmiş
 
-      - name: Resolve version
+      - name: Read plugin version
         id: ver
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          V=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9A-Za-z.\-]+' wp-remarketing.php | head -n1)
+          if [ -z "$V" ]; then
+            echo "::error::wp-remarketing.php içinde Version bulunamadı"; exit 1
+          fi
+          echo "version=$V"  >> "$GITHUB_OUTPUT"
+          echo "tag=v$V"     >> "$GITHUB_OUTPUT"
+          echo "Sürüm: $V"
 
-      - name: Verify plugin header matches tag
+      - name: Check if release exists
+        id: check
         run: |
-          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9A-Za-z.\-]+' wp-remarketing.php | head -n1)
-          echo "Header version: $HEADER / Tag: ${{ steps.ver.outputs.tag }}"
-          if [ "$HEADER" != "${{ steps.ver.outputs.tag }}" ]; then
-            echo "::error::Plugin header version ($HEADER) does not match tag (${{ steps.ver.outputs.tag }})"
-            exit 1
+          if git rev-parse "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ steps.ver.outputs.tag }} zaten mevcut — atlanıyor"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Create & push tag
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.ver.outputs.tag }}" \
+            -m "WP Remarketing ${{ steps.ver.outputs.version }}"
+          git push origin "${{ steps.ver.outputs.tag }}"
+
       - name: Build plugin zip
+        if: steps.check.outputs.exists == 'false'
         run: |
           SLUG=wp-remarketing
           mkdir -p "build/$SLUG"
@@ -39,8 +62,10 @@ jobs:
           cd build && zip -rq "$SLUG.zip" "$SLUG"
 
       - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          name: WP Remarketing ${{ github.ref_name }}
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: WP Remarketing ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
           files: build/wp-remarketing.zip
