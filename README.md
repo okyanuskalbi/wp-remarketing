@@ -32,6 +32,21 @@ assets/admin.css                # Admin stili
 readme.txt                      # WordPress.org readme
 ```
 
+## Sürüm çıkarma (otomatik)
+
+Release tamamen otomatiktir — elle tag atmaya gerek yok:
+
+1. `wp-remarketing.php` header'ındaki `Version:` değerini artır (kaynak budur).
+2. `readme.txt` içindeki `Stable tag` ve changelog'u güncelle.
+3. Commit + `main`'e push.
+
+Release workflow header'daki sürümü okur; o sürüm için `v<sürüm>` tag'i yoksa
+otomatik tag atar, kurulabilir zip'i derler ve sürüm notlarıyla GitHub Release
+yayınlar. Sürüm değişmediyse (tag zaten varsa) adım atlanır. Workflow'u GitHub
+Actions sekmesinden elle de tetikleyebilirsin (`workflow_dispatch`).
+
+CI (`build.yml`) ayrıca her push/PR'da PHP 7.4 + 8.2 söz dizimi denetimi yapar.
+
 ## Güvenlik notları
 
 * Tüm kimlikler kayıttan önce desen kontrolünden geçer (`AW-`, `GTM-`, sayısal
