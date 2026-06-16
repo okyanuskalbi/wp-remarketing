@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Verify plugin header matches tag
+        run: |
+          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9A-Za-z.\-]+' wp-remarketing.php | head -n1)
+          echo "Header version: $HEADER / Tag: ${{ steps.ver.outputs.tag }}"
+          if [ "$HEADER" != "${{ steps.ver.outputs.tag }}" ]; then
+            echo "::error::Plugin header version ($HEADER) does not match tag (${{ steps.ver.outputs.tag }})"
+            exit 1
+          fi
+
+      - name: Build plugin zip
+        run: |
+          SLUG=wp-remarketing
+          mkdir -p "build/$SLUG"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='build' \
+            --exclude='*.zip' ./ "build/$SLUG/"
+          cd build && zip -rq "$SLUG.zip" "$SLUG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: WP Remarketing ${{ github.ref_name }}
+          generate_release_notes: true
+          files: build/wp-remarketing.zip
