@@ -4,7 +4,7 @@ Tags: remarketing, google ads, gtm, meta pixel, tiktok, woocommerce
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,14 @@ Bu sürüm **Faz 1**: merkezi etiket yönetimi, onay kapısı ve temel WooCommer
 3. Ayarlar > WP Remarketing sayfasından kimliklerinizi girin.
 
 == Changelog ==
+
+= 1.0.1 =
+* Düzeltme: "banner" onay modunda banner artık ilk ziyaretçiye gösteriliyor (önceden onay kilitleniyordu).
+* Düzeltme: WooCommerce satın alma olayı sipariş başına yalnızca bir kez tetikleniyor (sayfa yenilemede tekrar saymıyor).
+* Eklendi: Google Ads artık ViewContent/Purchase olaylarını gtag ile alıyor (önceden yalnızca sayfa düzeyi remarketing vardı).
+* Düzeltme: Çeviriler "init" kancasında yükleniyor (WP 6.7+ uyarısı giderildi).
+* İyileştirme: ViewContent değeri wc_get_price_to_display ile, content_type eklendi; footer kancalarındaki guard hatası giderildi.
+* CI: git archive ile temiz paketleme, sürüm yarışına karşı concurrency, readme Stable tag doğrulaması, orphan-tag önlemi.
 
 = 1.0.0 =
 * İlk sürüm (Faz 1): Google Ads, GTM, Meta Pixel, TikTok etiketleri; onay modu; WooCommerce ViewContent/Purchase olayları.

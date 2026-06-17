@@ -98,7 +98,12 @@ class WPREM_Settings {
 		register_setting(
 			self::GROUP,
 			WPREM_OPTION,
-			array( $this, 'sanitize' )
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize' ),
+				'default'           => self::defaults(),
+				'show_in_rest'      => false,
+			)
 		);
 	}
 

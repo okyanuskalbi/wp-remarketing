@@ -27,11 +27,13 @@ class WPREM_Tags {
 	}
 
 	/**
-	 * Whether any tag should be printed for the current visitor.
+	 * Base activation check, independent of consent: plugin enabled, front-end,
+	 * and not an excluded admin. Always (re)populates $this->s so each hook
+	 * callback is self-contained.
 	 *
 	 * @return bool
 	 */
-	private function should_render() {
+	private function base_active() {
 		$this->s = WPREM_Settings::get();
 
 		if ( empty( $this->s['enabled'] ) ) {
@@ -43,10 +45,17 @@ class WPREM_Tags {
 		if ( ! empty( $this->s['disable_admins'] ) && current_user_can( 'manage_options' ) ) {
 			return false;
 		}
-		if ( ! $this->has_consent() ) {
-			return false;
-		}
 		return true;
+	}
+
+	/**
+	 * Whether tracking tags may be printed for the current visitor
+	 * (base activation AND consent granted).
+	 *
+	 * @return bool
+	 */
+	private function should_render() {
+		return $this->base_active() && $this->has_consent();
 	}
 
 	/**
@@ -73,19 +82,26 @@ class WPREM_Tags {
 	}
 
 	public function body_open() {
-		if ( empty( $this->s ) || ! $this->should_render() ) {
+		if ( ! $this->should_render() ) {
 			return;
 		}
 		$this->gtm_body();
 	}
 
+	/**
+	 * Footer runs independently of consent so the consent banner (which is
+	 * what collects consent in "banner" mode) can be shown to first-time
+	 * visitors. Tracking events themselves remain gated by has_consent().
+	 */
 	public function footer() {
-		if ( empty( $this->s ) || ! $this->should_render() ) {
+		if ( ! $this->base_active() ) {
 			return;
 		}
-		if ( ! empty( $this->s['woo_events'] ) ) {
+
+		if ( $this->has_consent() && ! empty( $this->s['woo_events'] ) ) {
 			$this->woo_events();
 		}
+
 		if ( 'banner' === $this->s['consent_mode'] && ! $this->cookie_set() ) {
 			$this->consent_banner();
 		}
@@ -112,7 +128,7 @@ class WPREM_Tags {
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '<?php echo $id; // already esc_js ?>');
+gtag('config', '<?php echo $id; // already esc_js ?>', {'conversion_linker': true});
 </script>
 		<?php
 	}
@@ -198,23 +214,29 @@ ttq.page();
 			return;
 		}
 
-		$has_meta   = '' !== $this->s['meta_pixel_id'];
-		$has_tiktok = '' !== $this->s['tiktok_id'];
-		$has_ads    = '' !== $this->s['google_ads_id'];
-		if ( ! $has_meta && ! $has_tiktok && ! $has_ads ) {
+		$has_any = '' !== $this->s['meta_pixel_id']
+			|| '' !== $this->s['tiktok_id']
+			|| '' !== $this->s['google_ads_id'];
+		if ( ! $has_any ) {
 			return;
 		}
 
 		if ( is_product() ) {
 			$product = wc_get_product( get_the_ID() );
 			if ( $product ) {
+				$value = wc_get_price_to_display( $product );
+				if ( '' === $value || null === $value ) {
+					$value = 0;
+				}
 				$this->emit_event(
 					'ViewContent',
 					'ViewContent',
+					'view_item',
 					array(
-						'content_ids' => array( (string) $product->get_id() ),
-						'value'       => (float) $product->get_price(),
-						'currency'    => get_woocommerce_currency(),
+						'content_ids'  => array( (string) $product->get_id() ),
+						'content_type' => 'product',
+						'value'        => (float) $value,
+						'currency'     => get_woocommerce_currency(),
 					)
 				);
 			}
@@ -223,27 +245,33 @@ ttq.page();
 		if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
 			$order_id = absint( get_query_var( 'order-received' ) );
 			$order    = $order_id ? wc_get_order( $order_id ) : false;
-			if ( $order ) {
+			// Fire once per order: WooCommerce thank-you page is reachable on refresh.
+			if ( $order && ! $order->get_meta( '_wprem_purchase_tracked' ) ) {
 				$this->emit_event(
 					'Purchase',
 					'CompletePayment',
+					'purchase',
 					array(
-						'value'    => (float) $order->get_total(),
-						'currency' => $order->get_currency(),
+						'value'          => (float) $order->get_total(),
+						'currency'       => $order->get_currency(),
+						'transaction_id' => (string) $order->get_id(),
 					)
 				);
+				$order->update_meta_data( '_wprem_purchase_tracked', '1' );
+				$order->save();
 			}
 		}
 	}
 
 	/**
-	 * Push one event to Meta and/or TikTok with JSON-encoded params.
+	 * Push one event to the configured pixels with JSON-encoded params.
 	 *
 	 * @param string $meta_event   Meta (fbq) event name.
 	 * @param string $tiktok_event TikTok (ttq) event name.
-	 * @param array  $params       Event payload.
+	 * @param string $google_event Google Ads (gtag) event name.
+	 * @param array  $params       Event payload (value, currency, etc.).
 	 */
-	private function emit_event( $meta_event, $tiktok_event, $params ) {
+	private function emit_event( $meta_event, $tiktok_event, $google_event, $params ) {
 		$json = wp_json_encode( $params );
 		if ( false === $json ) {
 			$json = '{}';
@@ -261,6 +289,19 @@ ttq.page();
 				"if(window.ttq){ttq.track('%s',%s);}\n",
 				esc_js( $tiktok_event ),
 				$json // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_json_encode output.
+			);
+		}
+		if ( '' !== $this->s['google_ads_id'] ) {
+			$g               = $params;
+			$g['send_to']    = $this->s['google_ads_id'];
+			$gjson           = wp_json_encode( $g );
+			if ( false === $gjson ) {
+				$gjson = '{}';
+			}
+			printf(
+				"if(window.gtag){gtag('event','%s',%s);}\n",
+				esc_js( $google_event ),
+				$gjson // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_json_encode output.
 			);
 		}
 		echo "</script>\n";
