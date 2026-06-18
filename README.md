@@ -27,10 +27,33 @@ includes/
   class-wprem-plugin.php        # Bileşenleri bağlar
   class-wprem-settings.php      # Ayar deposu + admin sayfası + sanitizasyon
   class-wprem-tags.php          # Front-end etiket/olay enjeksiyonu
+  class-wprem-db.php            # İstatistik tablosu (kurulum/upgrade)
+  class-wprem-tracker.php       # Beacon + UTM/geo/bot + WooCommerce olay kaydı
+  class-wprem-stats.php         # İstatistik raporları + admin sayfası
   views/settings-page.php       # Ayar sayfası şablonu
+  views/stats-page.php          # İstatistik sayfası şablonu
 assets/admin.css                # Admin stili
+assets/tracker.js               # İlk-taraf pageview/UTM beacon
 readme.txt                      # WordPress.org readme
 ```
+
+## İstatistik modülü (Faz 2)
+
+Eklenti, pixel etiketlerinden bağımsız olarak **ilk-taraf** istatistik de toplar
+(Ayarlar → WP Remarketing → İstatistik toplama):
+
+* Async beacon her sayfa görüntülemeyi ve **UTM** (kaynak/mecra/kampanya/term/içerik)
+  ilk-dokunuş atıfını kaydeder.
+* WooCommerce **sepete ekleme** ve **satın alma** olayları ziyaretçinin oturumuna
+  bağlanır, böylece kampanya bazında huni çıkar.
+* **Bot/insan** ayrımı user-agent ile yapılır; botlar raporlarda hariç tutulur.
+* **İl/şehir** IP konumundan (ip-api) çözülür. Ham IP **saklanmaz**; ziyaretçi
+  yalnızca `sha256(ip + ua + salt)` ile anonimleştirilir.
+* **Ayarlar → WP Remarketing İstatistik** sayfası 7/30/90 günlük kartlar ve
+  kaynak/kampanya/il kırılımı gösterir.
+
+Veriler özel `{prefix}wprem_events` tablosunda tutulur; eklenti silindiğinde tablo
+ve ayarlar temizlenir.
 
 ## Sürüm çıkarma (otomatik)
 

@@ -120,6 +120,37 @@ defined( 'ABSPATH' ) || exit;
 			</tr>
 		</table>
 
+		<h2><?php esc_html_e( 'İstatistik (ilk-taraf)', 'wp-remarketing' ); ?></h2>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'İstatistik toplama', 'wp-remarketing' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="<?php echo esc_attr( WPREM_OPTION ); ?>[analytics]" value="1" <?php checked( $s['analytics'], 1 ); ?> />
+						<?php esc_html_e( 'Ziyaret, UTM, sepete ekleme ve satışları kaydet', 'wp-remarketing' ); ?>
+					</label>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: stats page link */
+							esc_html__( 'Raporlar: %s', 'wp-remarketing' ),
+							'<a href="' . esc_url( admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE ) ) . '">' . esc_html__( 'WP Remarketing İstatistik', 'wp-remarketing' ) . '</a>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'İl/şehir çözümü', 'wp-remarketing' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="<?php echo esc_attr( WPREM_OPTION ); ?>[geo_lookup]" value="1" <?php checked( $s['geo_lookup'], 1 ); ?> />
+						<?php esc_html_e( 'IP konumundan il/şehir çöz (ham IP saklanmaz, anonimleştirilir)', 'wp-remarketing' ); ?>
+					</label>
+				</td>
+			</tr>
+		</table>
+
 		<?php submit_button(); ?>
 	</form>
 </div>

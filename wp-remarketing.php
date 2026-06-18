@@ -3,7 +3,7 @@
  * Plugin Name:       WP Remarketing
  * Plugin URI:        https://github.com/okyanuskalbi/wp-remarketing
  * Description:        Remarketing etiket/pixel yöneticisi — Google Ads, Google Tag Manager, Meta Pixel ve TikTok için merkezi, onay (consent) duyarlı etiket enjeksiyonu. WooCommerce ürün görüntüleme ve satın alma olaylarını destekler.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Emre
@@ -17,14 +17,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPREM_VERSION', '1.0.1' );
+define( 'WPREM_VERSION', '1.1.0' );
 define( 'WPREM_FILE', __FILE__ );
 define( 'WPREM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPREM_URL', plugin_dir_url( __FILE__ ) );
 define( 'WPREM_OPTION', 'wprem_settings' );
 
+require_once WPREM_DIR . 'includes/class-wprem-db.php';
 require_once WPREM_DIR . 'includes/class-wprem-settings.php';
 require_once WPREM_DIR . 'includes/class-wprem-tags.php';
+require_once WPREM_DIR . 'includes/class-wprem-tracker.php';
+require_once WPREM_DIR . 'includes/class-wprem-stats.php';
 require_once WPREM_DIR . 'includes/class-wprem-plugin.php';
 
 /**
@@ -47,5 +50,6 @@ function wprem_activate() {
 	if ( false === get_option( WPREM_OPTION ) ) {
 		add_option( WPREM_OPTION, WPREM_Settings::defaults() );
 	}
+	WPREM_DB::install();
 }
 register_activation_hook( __FILE__, 'wprem_activate' );

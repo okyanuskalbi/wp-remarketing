@@ -4,7 +4,7 @@ Tags: remarketing, google ads, gtm, meta pixel, tiktok, woocommerce
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,13 @@ Bu sürüm **Faz 1**: merkezi etiket yönetimi, onay kapısı ve temel WooCommer
 3. Ayarlar > WP Remarketing sayfasından kimliklerinizi girin.
 
 == Changelog ==
+
+= 1.1.0 =
+* Yeni (Faz 2): İlk-taraf istatistik modülü. Async beacon ile sayfa görüntüleme + UTM (kaynak/mecra/kampanya) yakalama, WooCommerce sepete ekleme ve satın alma olaylarını oturuma bağlama.
+* Yeni: Bot/insan ayrımı (user-agent tabanlı); botlar raporlarda hariç tutulur.
+* Yeni: IP konumundan il/şehir çözümü (ip-api). Ham IP saklanmaz; ziyaretçi yalnızca sha256(ip+ua+salt) ile anonimleştirilir.
+* Yeni: Admin "WP Remarketing İstatistik" sayfası — tekil ziyaretçi/oturum/sepet/satış/ciro/dönüşüm kartları + kaynak, kampanya ve il bazında kırılım (7/30/90 gün).
+* Yeni ayarlar: istatistik toplama ve il/şehir çözümü açma/kapama.
 
 = 1.0.1 =
 * Düzeltme: "banner" onay modunda banner artık ilk ziyaretçiye gösteriliyor (önceden onay kilitleniyordu).

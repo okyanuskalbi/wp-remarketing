@@ -28,6 +28,8 @@ class WPREM_Settings {
 			'consent_cookie' => 'wprem_consent',
 			'woo_events'     => 1,
 			'disable_admins' => 1,
+			'analytics'      => 1,
+			'geo_lookup'     => 1,
 		);
 	}
 
@@ -120,6 +122,8 @@ class WPREM_Settings {
 		$out['enabled']        = empty( $in['enabled'] ) ? 0 : 1;
 		$out['woo_events']     = empty( $in['woo_events'] ) ? 0 : 1;
 		$out['disable_admins'] = empty( $in['disable_admins'] ) ? 0 : 1;
+		$out['analytics']      = empty( $in['analytics'] ) ? 0 : 1;
+		$out['geo_lookup']     = empty( $in['geo_lookup'] ) ? 0 : 1;
 
 		$out['google_ads_id'] = self::clean_id( $in['google_ads_id'] ?? '', '/^AW-[A-Za-z0-9]+$/' );
 		$out['gtm_id']        = self::clean_id( $in['gtm_id'] ?? '', '/^GTM-[A-Za-z0-9]+$/' );

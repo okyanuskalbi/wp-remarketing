@@ -11,3 +11,36 @@
 .wprem-wrap input[type="text"] {
 	font-family: Consolas, Menlo, monospace;
 }
+
+.wprem-cards {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 18px 0 8px;
+}
+
+.wprem-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 130px;
+	padding: 14px 16px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.wprem-card-num {
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.wprem-card-lbl {
+	margin-top: 4px;
+	color: #646970;
+	font-size: 12px;
+}
+
+.wprem-range {
+	margin: 6px 0 4px;
+}
