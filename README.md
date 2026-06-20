@@ -70,6 +70,34 @@ Actions sekmesinden elle de tetikleyebilirsin (`workflow_dispatch`).
 
 CI (`build.yml`) ayrıca her push/PR'da PHP 7.4 + 8.2 söz dizimi denetimi yapar.
 
+## Diğer eklentilerle uyumluluk
+
+* **İsim alanı:** tüm sınıflar `WPREM_*`, fonksiyonlar `wprem_*`, seçenek
+  `wprem_settings`, tablo `{prefix}wprem_events`, REST `wprem/v1`, çerezler
+  `wprem_*`, JS globali `WPREM_TRACK` — çakışma riski yok.
+* **WooCommerce HPOS:** custom order tables uyumluluğu beyan edilir; yalnızca
+  CRUD order API kullanılır.
+* **GA/Site Kit/GTM:** `gtag` global'i yalnızca yoksa tanımlanır
+  (`window.gtag = window.gtag || …`), mevcut gtag ezilmez; `dataLayer` paylaşılır.
+* **Önbellek eklentileri:** istatistik beacon'ı async REST POST olduğundan tam
+  sayfa önbelleğiyle uyumludur (sayfa HTML'ine gömülü değildir).
+* **Onay (consent) eklentileri:** `wprem_has_consent` filtresi ile CookieYes /
+  Complianz / Borlabs gibi yöneticiler etiketleri geçitleyebilir.
+* **Bot yönetimi:** `wprem_is_bot` filtresi ile Wordfence / Cloudflare gibi
+  araçlar daha güvenilir bot kararını sağlayabilir.
+
+> **Dikkat — pixel çiftlenmesi:** Aynı pixel'i ayrıca başka bir eklenti de
+> yüklüyorsa (PixelYourSite, Facebook for WooCommerce, Google Listings & Ads,
+> Site Kit) PageView/Purchase iki kez sayılabilir. Aynı kimliği yalnızca **tek**
+> eklentide tanımlayın.
+
+Entegrasyon filtreleri:
+
+```php
+add_filter( 'wprem_has_consent', fn( $ok ) => my_consent_manager_allows() );
+add_filter( 'wprem_is_bot', fn( $bot, $ua ) => $bot || my_bot_check( $ua ), 10, 2 );
+```
+
 ## Güvenlik notları
 
 * Tüm kimlikler kayıttan önce desen kontrolünden geçer (`AW-`, `GTM-`, sayısal

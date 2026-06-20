@@ -4,7 +4,7 @@ Tags: remarketing, google ads, gtm, meta pixel, tiktok, woocommerce
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,13 @@ Bu sürüm **Faz 1**: merkezi etiket yönetimi, onay kapısı ve temel WooCommer
 3. Ayarlar > WP Remarketing sayfasından kimliklerinizi girin.
 
 == Changelog ==
+
+= 1.1.1 =
+* Uyumluluk: WooCommerce HPOS (custom order tables) uyumluluğu beyan edildi.
+* Uyumluluk: gtag global'i yalnızca yoksa tanımlanıyor — GA / Site Kit / GTM eklentilerinin gtag'ini ezmiyor.
+* Yeni filtre: wprem_has_consent — CookieYes/Complianz/Borlabs gibi onay eklentileri etiketleri geçitleyebilir.
+* Yeni filtre: wprem_is_bot — Wordfence/Cloudflare gibi araçlar bot kararını sağlayabilir.
+* Belgeler: pixel çiftlenmesi uyarısı ve eklenti uyumluluk notları eklendi.
 
 = 1.1.0 =
 * Yeni (Faz 2): İlk-taraf istatistik modülü. Async beacon ile sayfa görüntüleme + UTM (kaynak/mecra/kampanya) yakalama, WooCommerce sepete ekleme ve satın alma olaylarını oturuma bağlama.

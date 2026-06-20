@@ -333,7 +333,15 @@ class WPREM_Tracker {
 			. 'pingdom|bitlybot|ia_archiver|semrush|ahrefs|mj12|dotbot|petalbot|bingpreview|'
 			. 'headless|phantomjs|python-requests|python-urllib|curl|wget|axios|go-http|'
 			. 'okhttp|java\/|libwww|scrapy|httpclient/i';
-		return (bool) preg_match( $pattern, $ua );
+		$bot = (bool) preg_match( $pattern, $ua );
+		/**
+		 * Filter bot detection so a security/bot-management plugin (Wordfence,
+		 * Cloudflare, etc.) can supply a more authoritative verdict.
+		 *
+		 * @param bool   $bot Whether the request looks like a bot.
+		 * @param string $ua  User agent.
+		 */
+		return (bool) apply_filters( 'wprem_is_bot', $bot, $ua );
 	}
 
 	private function clean( $v, $max ) {

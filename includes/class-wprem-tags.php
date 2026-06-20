@@ -65,10 +65,20 @@ class WPREM_Tags {
 	 */
 	private function has_consent() {
 		if ( 'off' === $this->s['consent_mode'] ) {
-			return true;
+			$granted = true;
+		} else {
+			$name    = $this->s['consent_cookie'];
+			$granted = isset( $_COOKIE[ $name ] ) && '1' === $_COOKIE[ $name ]; // phpcs:ignore WordPress.Security.NonceVerification
 		}
-		$name = $this->s['consent_cookie'];
-		return isset( $_COOKIE[ $name ] ) && '1' === $_COOKIE[ $name ]; // phpcs:ignore WordPress.Security.NonceVerification
+		/**
+		 * Filter the marketing-consent decision. Lets dedicated consent managers
+		 * (CookieYes, Complianz, Borlabs, ...) gate the remarketing tags instead
+		 * of conflicting with this plugin's own consent mode.
+		 *
+		 * @param bool   $granted Whether marketing tags may load.
+		 * @param string $mode    Current consent mode (off|cookie|banner).
+		 */
+		return (bool) apply_filters( 'wprem_has_consent', $granted, $this->s['consent_mode'] );
 	}
 
 	public function head() {
@@ -126,7 +136,7 @@ class WPREM_Tags {
 <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr( $this->s['google_ads_id'] ); ?>"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
+window.gtag = window.gtag || function(){dataLayer.push(arguments);};
 gtag('js', new Date());
 gtag('config', '<?php echo $id; // already esc_js ?>', {'conversion_linker': true});
 </script>
