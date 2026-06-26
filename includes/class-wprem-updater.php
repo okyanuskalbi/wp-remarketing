@@ -38,9 +38,13 @@ class WPREM_Updater {
 	 * @return array|null { version, zip, html_url, published_at }
 	 */
 	private function latest_release() {
-		$cached = get_transient( self::TRANSIENT );
-		if ( is_array( $cached ) ) {
-			return $cached;
+		// "Yeniden kontrol et" (force-check) bizim önbelleği de baypas etsin.
+		$force = ! empty( $_GET['force-check'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! $force ) {
+			$cached = get_transient( self::TRANSIENT );
+			if ( is_array( $cached ) ) {
+				return $cached;
+			}
 		}
 
 		$resp = wp_remote_get(
