@@ -33,6 +33,8 @@ $base = admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE );
 	<div class="wprem-cards">
 		<?php
 		$cards = array(
+			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ) ),
+			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ) ),
 			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( $sessions ) ),
 			array( __( 'Sepete ekleme', 'wp-remarketing' ), number_format_i18n( (int) ( $t['atc'] ?? 0 ) ) ),
 			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( $purchases ) ),
