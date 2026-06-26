@@ -100,6 +100,8 @@ class WPREM_Tracker {
 			'country' => '',
 			'region'  => '',
 			'city'    => '',
+			'lat'     => 0,
+			'lon'     => 0,
 		);
 
 		$row = array(
@@ -116,6 +118,8 @@ class WPREM_Tracker {
 			'country'      => $geo['country'],
 			'region'       => $geo['region'],
 			'city'         => $geo['city'],
+			'lat'          => $geo['lat'],
+			'lon'          => $geo['lon'],
 			'device'       => $this->device( $ua ),
 			'is_bot'       => $bot ? 1 : 0,
 		);
@@ -206,6 +210,8 @@ class WPREM_Tracker {
 			'country'      => '',
 			'region'       => '',
 			'city'         => '',
+			'lat'          => 0,
+			'lon'          => 0,
 			'device'       => $this->device( $ua ),
 			'is_bot'       => $this->is_bot( $ua ) ? 1 : 0,
 		);
@@ -217,7 +223,7 @@ class WPREM_Tracker {
 		$table = WPREM_DB::table();
 		$found = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content, country, region, city, device
+				"SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content, country, region, city, lat, lon, device
 				 FROM $table WHERE session_id = %s AND event_type = 'pageview'
 				 ORDER BY id DESC LIMIT 1",
 				$sid
@@ -291,6 +297,8 @@ class WPREM_Tracker {
 			'country' => '',
 			'region'  => '',
 			'city'    => '',
+			'lat'     => 0,
+			'lon'     => 0,
 		);
 		if ( '' === $ip ) {
 			return $empty;
@@ -303,7 +311,7 @@ class WPREM_Tracker {
 		}
 
 		$resp = wp_remote_get(
-			'http://ip-api.com/json/' . rawurlencode( $ip ) . '?fields=status,countryCode,regionName,city',
+			'http://ip-api.com/json/' . rawurlencode( $ip ) . '?fields=status,countryCode,regionName,city,lat,lon',
 			array( 'timeout' => 2 )
 		);
 		if ( is_wp_error( $resp ) ) {
@@ -321,6 +329,8 @@ class WPREM_Tracker {
 			'country' => substr( sanitize_text_field( $data['countryCode'] ?? '' ), 0, 2 ),
 			'region'  => $this->clean( $data['regionName'] ?? '', 100 ),
 			'city'    => $this->clean( $data['city'] ?? '', 100 ),
+			'lat'     => isset( $data['lat'] ) ? round( (float) $data['lat'], 6 ) : 0,
+			'lon'     => isset( $data['lon'] ) ? round( (float) $data['lon'], 6 ) : 0,
 		);
 		set_transient( $key, $geo, 12 * HOUR_IN_SECONDS );
 		return $geo;

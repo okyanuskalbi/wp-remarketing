@@ -21,6 +21,11 @@ class WPREM_Stats {
 			return;
 		}
 		wp_enqueue_style( 'wprem-admin', WPREM_URL . 'assets/admin.css', array(), WPREM_VERSION );
+
+		// Leaflet + heatmap layer (head, so the inline init in the view can use L).
+		wp_enqueue_style( 'wprem-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', array(), '1.9.4' );
+		wp_enqueue_script( 'wprem-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', array(), '1.9.4', false );
+		wp_enqueue_script( 'wprem-leaflet-heat', 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js', array( 'wprem-leaflet' ), '0.2.0', false );
 	}
 
 	public function menu() {
@@ -151,6 +156,39 @@ class WPREM_Stats {
 		); // phpcs:ignore WordPress.DB
 	}
 
+	/**
+	 * Geo points for the heat map — one row per il/ilçe with averaged coordinates
+	 * and session/atc/purchase counts. Rows without coordinates are excluded.
+	 *
+	 * @param string $since Lower datetime bound.
+	 * @param int    $limit Row cap.
+	 * @return array
+	 */
+	private function geo_points( $since, $limit = 500 ) {
+		global $wpdb;
+		$table = WPREM_DB::table();
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT
+					COALESCE(NULLIF(region,''),'(bilinmiyor)') AS region,
+					city,
+					ROUND(AVG(lat),5) AS lat,
+					ROUND(AVG(lon),5) AS lon,
+					COUNT(DISTINCT CASE WHEN event_type='pageview' THEN session_id END) AS sessions,
+					SUM(event_type='add_to_cart') AS atc,
+					SUM(event_type='purchase') AS purchases
+				FROM $table
+				WHERE created_at >= %s AND is_bot = 0 AND lat <> 0 AND lon <> 0
+				GROUP BY region, city
+				ORDER BY sessions DESC
+				LIMIT %d",
+				$since,
+				$limit
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB
+	}
+
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -165,6 +203,7 @@ class WPREM_Stats {
 		$by_il       = $this->breakdown( "CONCAT(COALESCE(NULLIF(region,''),'(bilinmiyor)'),' / ',COALESCE(NULLIF(city,''),'-'))", $since );
 		$by_platform = $this->breakdown( "COALESCE(NULLIF(device,''),'(bilinmiyor)')", $since );
 		$abandoned   = $this->abandoned( $since );
+		$geo_points  = $this->geo_points( $since );
 
 		$sessions  = (int) ( $t['sessions'] ?? 0 );
 		$purchases = (int) ( $t['purchases'] ?? 0 );

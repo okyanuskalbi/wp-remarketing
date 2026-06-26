@@ -10,6 +10,7 @@
  * @var array $by_il       Region (il/ilçe) breakdown.
  * @var array $by_platform Device/platform breakdown.
  * @var array $abandoned   Abandoned-cart sessions.
+ * @var array $geo_points  Heat-map points (il/ilçe + coordinates + counts).
  * @var int   $sessions
  * @var int   $purchases
  * @var float $conv
@@ -78,6 +79,70 @@ $render_table = function ( $heading, $col, $rows ) {
 		}
 		?>
 	</div>
+
+	<?php
+	// Build map points payload: [lat, lon, sessions, "label", atc, purchases].
+	$map_points = array();
+	foreach ( (array) $geo_points as $g ) {
+		$label = $g['region'] . ( $g['city'] ? ' / ' . $g['city'] : '' );
+		$map_points[] = array(
+			(float) $g['lat'],
+			(float) $g['lon'],
+			(int) $g['sessions'],
+			$label,
+			(int) $g['atc'],
+			(int) $g['purchases'],
+		);
+	}
+	?>
+	<h2><?php esc_html_e( 'Ziyaretçi ısı haritası', 'wp-remarketing' ); ?></h2>
+	<?php if ( empty( $map_points ) ) : ?>
+		<p class="description"><?php esc_html_e( 'Henüz konum verisi yok. (Ayarlardan "IP konum çözümü" açık olmalı ve yeni ziyaretler gelmeli.)', 'wp-remarketing' ); ?></p>
+	<?php else : ?>
+		<div id="wprem-map" style="height:460px;max-width:1100px;border:1px solid #dcdcde;border-radius:6px;margin-bottom:8px"></div>
+		<script>
+		( function () {
+			var pts = <?php echo wp_json_encode( $map_points ); ?>;
+			function init() {
+				if ( ! window.L || ! document.getElementById( 'wprem-map' ) ) { return; }
+				var map = L.map( 'wprem-map' );
+				L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					maxZoom: 18,
+					attribution: '© OpenStreetMap'
+				} ).addTo( map );
+
+				var maxS = 1, bounds = [];
+				pts.forEach( function ( p ) { if ( p[2] > maxS ) { maxS = p[2]; } } );
+
+				var heat = pts.map( function ( p ) { return [ p[0], p[1], p[2] / maxS ]; } );
+				if ( L.heatLayer ) {
+					L.heatLayer( heat, { radius: 28, blur: 20, maxZoom: 9 } ).addTo( map );
+				}
+
+				pts.forEach( function ( p ) {
+					bounds.push( [ p[0], p[1] ] );
+					L.circleMarker( [ p[0], p[1] ], {
+						radius: 5, color: '#d63638', weight: 1, fillOpacity: 0.6
+					} ).addTo( map ).bindPopup(
+						'<strong>' + p[3] + '</strong><br>Oturum: ' + p[2] +
+						'<br>Sepete ekleme: ' + p[4] + '<br>Satış: ' + p[5]
+					);
+				} );
+
+				if ( bounds.length ) {
+					map.fitBounds( bounds, { padding: [ 30, 30 ], maxZoom: 11 } );
+				} else {
+					map.setView( [ 39, 35 ], 5 );
+				}
+			}
+			if ( document.readyState === 'loading' ) {
+				document.addEventListener( 'DOMContentLoaded', init );
+			} else {
+				init();
+			}
+		} )();
+		</script>
+	<?php endif; ?>
 
 	<?php
 	$render_table( __( 'Kaynak / Mecra', 'wp-remarketing' ), __( 'Kaynak / Mecra', 'wp-remarketing' ), $by_src );
