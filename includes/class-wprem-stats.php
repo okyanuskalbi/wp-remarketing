@@ -119,6 +119,35 @@ class WPREM_Stats {
 		); // phpcs:ignore WordPress.DB
 	}
 
+	/**
+	 * Bot pageviews grouped by landing page — hit count, last seen and country.
+	 *
+	 * @param string $since Lower datetime bound.
+	 * @param int    $limit Row cap.
+	 * @return array
+	 */
+	private function bots( $since, $limit = 50 ) {
+		global $wpdb;
+		$table = WPREM_DB::table();
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT
+					COALESCE(NULLIF(landing_path,''),'-') AS landing_path,
+					COUNT(*) AS hits,
+					MAX(created_at) AS last_seen,
+					MAX(country) AS country
+				FROM $table
+				WHERE event_type = 'pageview' AND is_bot = 1 AND created_at >= %s
+				GROUP BY landing_path
+				ORDER BY hits DESC
+				LIMIT %d",
+				$since,
+				$limit
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB
+	}
+
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -129,6 +158,7 @@ class WPREM_Stats {
 
 		$t         = $this->totals( $since );
 		$abandoned = $this->abandoned( $since );
+		$bots      = $this->bots( $since );
 
 		$sessions  = (int) ( $t['sessions'] ?? 0 );
 		$purchases = (int) ( $t['purchases'] ?? 0 );

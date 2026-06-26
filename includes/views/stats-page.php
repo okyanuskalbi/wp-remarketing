@@ -6,6 +6,7 @@
  * @var int   $days
  * @var array $t         Totals row.
  * @var array $abandoned Abandoned-cart sessions.
+ * @var array $bots      Bot pageviews grouped by landing page.
  * @var int   $sessions
  * @var int   $purchases
  * @var float $conv
@@ -79,7 +80,28 @@ $base = admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE );
 	<?php endif; ?>
 	</tbody></table>
 
+	<h2><?php esc_html_e( 'Bot trafiği', 'wp-remarketing' ); ?></h2>
+	<table class="widefat striped" style="max-width:880px"><thead><tr>
+		<th><?php esc_html_e( 'Sayfa', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'İsabet', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Ülke', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Son görülme', 'wp-remarketing' ); ?></th>
+	</tr></thead><tbody>
+	<?php if ( empty( $bots ) ) : ?>
+		<tr><td colspan="4"><em><?php esc_html_e( 'Bot trafiği yok.', 'wp-remarketing' ); ?></em></td></tr>
+	<?php else : ?>
+		<?php foreach ( (array) $bots as $b ) : ?>
+			<tr>
+				<td><?php echo esc_html( $b['landing_path'] ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $b['hits'] ) ); ?></td>
+				<td><?php echo esc_html( $b['country'] ? $b['country'] : '—' ); ?></td>
+				<td><?php echo esc_html( $b['last_seen'] ); ?></td>
+			</tr>
+		<?php endforeach; ?>
+	<?php endif; ?>
+	</tbody></table>
+
 	<p class="description" style="margin-top:18px">
-		<?php esc_html_e( 'Sepette bırakanlar: sepete ekleyip satın almamış oturumlardır. Bot isabetleri hariç tutulur. İl/ilçe IP konumundan çözülür; ham IP saklanmaz.', 'wp-remarketing' ); ?>
+		<?php esc_html_e( 'Sepette bırakanlar: sepete ekleyip satın almamış oturumlardır; bu liste botları hariç tutar. Bot trafiği ayrı tabloda gösterilir. İl/ilçe IP konumundan çözülür; ham IP saklanmaz.', 'wp-remarketing' ); ?>
 	</p>
 </div>
