@@ -108,6 +108,49 @@ class WPREM_Stats {
 		); // phpcs:ignore WordPress.DB
 	}
 
+	/**
+	 * Sessions that added to cart but never purchased (abandoned carts), with the
+	 * visitor's il/ilçe, platform and source/UTM. One row per session, newest first.
+	 *
+	 * @param string $since Lower datetime bound.
+	 * @param int    $limit Row cap.
+	 * @return array
+	 */
+	private function abandoned( $since, $limit = 200 ) {
+		global $wpdb;
+		$table = WPREM_DB::table();
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT
+					a.session_id,
+					MAX(a.created_at) AS last_seen,
+					COUNT(*) AS atc_count,
+					MAX(a.region) AS region,
+					MAX(a.city) AS city,
+					MAX(a.device) AS device,
+					MAX(a.utm_source) AS utm_source,
+					MAX(a.utm_medium) AS utm_medium,
+					MAX(a.utm_campaign) AS utm_campaign,
+					MAX(a.referrer) AS referrer
+				FROM $table a
+				WHERE a.event_type = 'add_to_cart'
+					AND a.is_bot = 0
+					AND a.session_id <> ''
+					AND a.created_at >= %s
+					AND NOT EXISTS (
+						SELECT 1 FROM $table p
+						WHERE p.session_id = a.session_id AND p.event_type = 'purchase'
+					)
+				GROUP BY a.session_id
+				ORDER BY last_seen DESC
+				LIMIT %d",
+				$since,
+				$limit
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB
+	}
+
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -117,9 +160,11 @@ class WPREM_Stats {
 		$since = $this->since( $days );
 
 		$t        = $this->totals( $since );
-		$by_src   = $this->breakdown( "CONCAT(COALESCE(NULLIF(utm_source,''),'(doğrudan)'),' / ',COALESCE(NULLIF(utm_medium,''),'-'))", $since );
-		$by_camp  = $this->breakdown( "COALESCE(NULLIF(utm_campaign,''),'(kampanyasız)')", $since );
-		$by_il    = $this->breakdown( "COALESCE(NULLIF(region,''),'(bilinmiyor)')", $since );
+		$by_src      = $this->breakdown( "CONCAT(COALESCE(NULLIF(utm_source,''),'(doğrudan)'),' / ',COALESCE(NULLIF(utm_medium,''),'-'))", $since );
+		$by_camp     = $this->breakdown( "COALESCE(NULLIF(utm_campaign,''),'(kampanyasız)')", $since );
+		$by_il       = $this->breakdown( "CONCAT(COALESCE(NULLIF(region,''),'(bilinmiyor)'),' / ',COALESCE(NULLIF(city,''),'-'))", $since );
+		$by_platform = $this->breakdown( "COALESCE(NULLIF(device,''),'(bilinmiyor)')", $since );
+		$abandoned   = $this->abandoned( $since );
 
 		$sessions  = (int) ( $t['sessions'] ?? 0 );
 		$purchases = (int) ( $t['purchases'] ?? 0 );

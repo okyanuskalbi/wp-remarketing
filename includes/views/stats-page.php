@@ -7,7 +7,9 @@
  * @var array $t        Totals row.
  * @var array $by_src   Source/medium breakdown.
  * @var array $by_camp  Campaign breakdown.
- * @var array $by_il    Region (il) breakdown.
+ * @var array $by_il       Region (il/ilçe) breakdown.
+ * @var array $by_platform Device/platform breakdown.
+ * @var array $abandoned   Abandoned-cart sessions.
  * @var int   $sessions
  * @var int   $purchases
  * @var float $conv
@@ -80,10 +82,43 @@ $render_table = function ( $heading, $col, $rows ) {
 	<?php
 	$render_table( __( 'Kaynak / Mecra', 'wp-remarketing' ), __( 'Kaynak / Mecra', 'wp-remarketing' ), $by_src );
 	$render_table( __( 'Kampanya', 'wp-remarketing' ), __( 'Kampanya', 'wp-remarketing' ), $by_camp );
-	$render_table( __( 'İl', 'wp-remarketing' ), __( 'İl', 'wp-remarketing' ), $by_il );
+	$render_table( __( 'Platform', 'wp-remarketing' ), __( 'Platform', 'wp-remarketing' ), $by_platform );
+	$render_table( __( 'İl / İlçe', 'wp-remarketing' ), __( 'İl / İlçe', 'wp-remarketing' ), $by_il );
 	?>
 
+	<h2><?php esc_html_e( 'Sepette bırakanlar', 'wp-remarketing' ); ?></h2>
+	<table class="widefat striped" style="max-width:1100px"><thead><tr>
+		<th><?php esc_html_e( 'Son görülme', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'İl / İlçe', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Platform', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Kaynak / Mecra', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Kampanya', 'wp-remarketing' ); ?></th>
+		<th><?php esc_html_e( 'Sepete ekleme', 'wp-remarketing' ); ?></th>
+	</tr></thead><tbody>
+	<?php if ( empty( $abandoned ) ) : ?>
+		<tr><td colspan="6"><em><?php esc_html_e( 'Sepette bırakan yok.', 'wp-remarketing' ); ?></em></td></tr>
+	<?php else : ?>
+		<?php
+		foreach ( (array) $abandoned as $a ) :
+			$il    = $a['region'] ? $a['region'] : '(bilinmiyor)';
+			$ilce  = $a['city'] ? ' / ' . $a['city'] : '';
+			$src   = ( $a['utm_source'] ? $a['utm_source'] : '(doğrudan)' ) . ' / ' . ( $a['utm_medium'] ? $a['utm_medium'] : '-' );
+			$camp  = $a['utm_campaign'] ? $a['utm_campaign'] : '—';
+			$dev   = $a['device'] ? $a['device'] : '(bilinmiyor)';
+			?>
+			<tr>
+				<td><?php echo esc_html( $a['last_seen'] ); ?></td>
+				<td><?php echo esc_html( $il . $ilce ); ?></td>
+				<td><?php echo esc_html( $dev ); ?></td>
+				<td><?php echo esc_html( $src ); ?></td>
+				<td><?php echo esc_html( $camp ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $a['atc_count'] ) ); ?></td>
+			</tr>
+		<?php endforeach; ?>
+	<?php endif; ?>
+	</tbody></table>
+
 	<p class="description" style="margin-top:18px">
-		<?php esc_html_e( 'Bot isabetleri tablolardan hariç tutulur. İl bilgisi IP konumundan çözülür; ham IP saklanmaz.', 'wp-remarketing' ); ?>
+		<?php esc_html_e( 'Sepette bırakanlar: sepete ekleyip satın almamış oturumlardır. Bot isabetleri tablolardan hariç tutulur. İl/ilçe IP konumundan çözülür; ham IP saklanmaz.', 'wp-remarketing' ); ?>
 	</p>
 </div>

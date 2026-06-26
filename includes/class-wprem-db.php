@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 class WPREM_DB {
 
-	const DB_VERSION    = '1';
+	const DB_VERSION    = '2';
 	const VERSION_OPT   = 'wprem_db_version';
 
 	/**
@@ -47,6 +47,7 @@ class WPREM_DB {
 	country varchar(2) NOT NULL DEFAULT '',
 	region varchar(100) NOT NULL DEFAULT '',
 	city varchar(100) NOT NULL DEFAULT '',
+	device varchar(20) NOT NULL DEFAULT '',
 	is_bot tinyint(1) NOT NULL DEFAULT 0,
 	product_id bigint(20) unsigned NOT NULL DEFAULT 0,
 	order_id bigint(20) unsigned NOT NULL DEFAULT 0,

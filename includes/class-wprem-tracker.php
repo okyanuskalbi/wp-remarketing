@@ -116,6 +116,7 @@ class WPREM_Tracker {
 			'country'      => $geo['country'],
 			'region'       => $geo['region'],
 			'city'         => $geo['city'],
+			'device'       => $this->device( $ua ),
 			'is_bot'       => $bot ? 1 : 0,
 		);
 
@@ -205,6 +206,7 @@ class WPREM_Tracker {
 			'country'      => '',
 			'region'       => '',
 			'city'         => '',
+			'device'       => $this->device( $ua ),
 			'is_bot'       => $this->is_bot( $ua ) ? 1 : 0,
 		);
 
@@ -215,7 +217,7 @@ class WPREM_Tracker {
 		$table = WPREM_DB::table();
 		$found = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content, country, region, city
+				"SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content, country, region, city, device
 				 FROM $table WHERE session_id = %s AND event_type = 'pageview'
 				 ORDER BY id DESC LIMIT 1",
 				$sid
@@ -224,7 +226,12 @@ class WPREM_Tracker {
 		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 		if ( $found ) {
-			$base = array_merge( $base, $found );
+			$computed_device = $base['device'];
+			$base            = array_merge( $base, $found );
+			// Keep the live UA-derived device when the stored pageview predates it.
+			if ( '' === $base['device'] ) {
+				$base['device'] = $computed_device;
+			}
 		}
 		return $base;
 	}
@@ -317,6 +324,25 @@ class WPREM_Tracker {
 		);
 		set_transient( $key, $geo, 12 * HOUR_IN_SECONDS );
 		return $geo;
+	}
+
+	/**
+	 * Classify the visitor's device/platform from the user agent.
+	 *
+	 * @param string $ua User agent.
+	 * @return string 'Mobil', 'Tablet' or 'Masaüstü'.
+	 */
+	private function device( $ua ) {
+		if ( '' === $ua ) {
+			return '';
+		}
+		if ( preg_match( '/ipad|tablet|playbook|silk|(android(?!.*mobile))/i', $ua ) ) {
+			return 'Tablet';
+		}
+		if ( preg_match( '/mobi|iphone|ipod|android.*mobile|windows phone|blackberry|opera mini/i', $ua ) ) {
+			return 'Mobil';
+		}
+		return 'Masaüstü';
 	}
 
 	/**
