@@ -14,6 +14,46 @@ class WPREM_Stats {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'dashboard_widget' ) );
+	}
+
+	/**
+	 * Register the Dashboard summary widget.
+	 */
+	public function dashboard_widget() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		wp_add_dashboard_widget(
+			'wprem_dashboard',
+			__( 'WP Remarketing (son 30 gün)', 'wp-remarketing' ),
+			array( $this, 'render_dashboard' )
+		);
+	}
+
+	/**
+	 * Compact summary for the Dashboard widget — last 30 days.
+	 */
+	public function render_dashboard() {
+		$since     = $this->since( 30 );
+		$t         = $this->totals( $since );
+		$abandoned = count( (array) $this->abandoned( $since ) );
+
+		$rows = array(
+			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ) ),
+			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( (int) ( $t['sessions'] ?? 0 ) ) ),
+			array( __( 'Sepette bırakan', 'wp-remarketing' ), number_format_i18n( $abandoned ) ),
+			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( (int) ( $t['purchases'] ?? 0 ) ) ),
+			array( __( 'Ciro', 'wp-remarketing' ), self::money( $t['revenue'] ?? 0 ) ),
+			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ) ),
+		);
+
+		echo '<table class="widefat striped"><tbody>';
+		foreach ( $rows as $r ) {
+			echo '<tr><td>' . esc_html( $r[0] ) . '</td><td style="text-align:right"><strong>' . esc_html( $r[1] ) . '</strong></td></tr>';
+		}
+		echo '</tbody></table>';
+		echo '<p style="margin-top:10px"><a href="' . esc_url( admin_url( 'options-general.php?page=' . self::PAGE ) ) . '">' . esc_html__( 'Tüm istatistikler →', 'wp-remarketing' ) . '</a></p>';
 	}
 
 	public function assets( $hook ) {
