@@ -29,6 +29,11 @@ class WPREM_Plugin {
 	 */
 	public $stats;
 
+	/**
+	 * @var WPREM_Updater
+	 */
+	public $updater;
+
 	public function __construct() {
 		// WordPress 6.7+ requires translations to load no earlier than `init`.
 		add_action( 'init', array( $this, 'load_textdomain' ) );
@@ -37,6 +42,7 @@ class WPREM_Plugin {
 			WPREM_DB::maybe_upgrade();
 			$this->settings = new WPREM_Settings();
 			$this->stats    = new WPREM_Stats();
+			$this->updater  = new WPREM_Updater();
 		} else {
 			$this->tags = new WPREM_Tags();
 		}

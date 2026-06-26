@@ -4,7 +4,7 @@ Tags: remarketing, google ads, gtm, meta pixel, tiktok, woocommerce
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,9 @@ Bu sürüm **Faz 1**: merkezi etiket yönetimi, onay kapısı ve temel WooCommer
 3. Ayarlar > WP Remarketing sayfasından kimliklerinizi girin.
 
 == Changelog ==
+
+= 1.3.0 =
+* Yeni: Otomatik güncelleme — eklenti GitHub Releases'i kontrol eder, yeni sürümde panelde "Güncelle" çıkar (harici kütüphane yok).
 
 = 1.2.1 =
 * Yeni: WordPress Pano'ya özet widget'ı — son 30 günün ziyaretçi, oturum, sepette bırakan, satış, ciro ve bot rakamları; tam istatistik sayfasına link.
