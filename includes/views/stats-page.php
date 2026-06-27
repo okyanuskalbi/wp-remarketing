@@ -19,6 +19,35 @@ $base = admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE );
 <div class="wrap wprem-wrap">
 	<h1><?php esc_html_e( 'WP Remarketing İstatistik', 'wp-remarketing' ); ?></h1>
 
+	<?php
+	$do_check = isset( $_GET['wprem_check'] ) && check_admin_referer( 'wprem_check' );
+	$chk      = $do_check ? WPREM_Updater::live_check() : null;
+	$chk_url  = wp_nonce_url( $base . '&wprem_check=1', 'wprem_check' );
+	?>
+	<div class="wprem-update-box" style="background:#fff;border:1px solid #e2e4e7;border-radius:10px;padding:12px 16px;margin:12px 0;max-width:1100px">
+		<strong><?php esc_html_e( 'Güncelleme durumu', 'wp-remarketing' ); ?>:</strong>
+		<?php esc_html_e( 'Kurulu sürüm', 'wp-remarketing' ); ?> <code><?php echo esc_html( WPREM_VERSION ); ?></code>
+		<a href="<?php echo esc_url( $chk_url ); ?>" class="button button-small" style="margin-left:8px"><?php esc_html_e( "GitHub'ı kontrol et", 'wp-remarketing' ); ?></a>
+		<?php if ( $chk ) : ?>
+			<div style="margin-top:8px">
+				<?php if ( '' !== $chk['error'] ) : ?>
+					<span style="color:#d63638">⚠ <?php esc_html_e( 'GitHub bağlantı hatası', 'wp-remarketing' ); ?>:</span>
+					<code><?php echo esc_html( $chk['error'] ); ?></code>
+					<?php if ( $chk['http'] ) : ?> (HTTP <?php echo esc_html( $chk['http'] ); ?>)<?php endif; ?>
+					<p class="description"><?php esc_html_e( 'Sunucu GitHub API’ye ulaşamıyor; otomatik güncelleme bu yüzden çalışmıyor olabilir.', 'wp-remarketing' ); ?></p>
+				<?php else : ?>
+					<?php esc_html_e( "GitHub'daki son sürüm", 'wp-remarketing' ); ?>: <code><?php echo esc_html( $chk['latest'] ); ?></code>
+					<?php if ( version_compare( $chk['latest'], WPREM_VERSION, '>' ) ) : ?>
+						<span style="color:#18a957;font-weight:600">— <?php esc_html_e( 'yeni sürüm var', 'wp-remarketing' ); ?> ✓</span>
+						<p class="description"><?php esc_html_e( 'Pano → Güncellemeler → "Yeniden kontrol et" ile güncelleyebilirsiniz.', 'wp-remarketing' ); ?></p>
+					<?php else : ?>
+						<span style="color:#646970">— <?php esc_html_e( 'güncelsiniz', 'wp-remarketing' ); ?></span>
+					<?php endif; ?>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
+	</div>
+
 	<p class="wprem-range">
 		<?php esc_html_e( 'Dönem:', 'wp-remarketing' ); ?>
 		<?php foreach ( array( 7, 30, 90 ) as $d ) : ?>

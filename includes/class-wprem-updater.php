@@ -163,4 +163,52 @@ class WPREM_Updater {
 	public function flush_cache() {
 		delete_transient( self::TRANSIENT );
 	}
+
+	/**
+	 * Live diagnostic check (no cache) — used by the "Güncelleme durumu" box on the
+	 * stats page so connectivity/version problems are visible without server access.
+	 *
+	 * @return array
+	 */
+	public static function live_check() {
+		$out = array(
+			'installed' => WPREM_VERSION,
+			'http'      => 0,
+			'latest'    => '',
+			'error'     => '',
+		);
+
+		$resp = wp_remote_get(
+			'https://api.github.com/repos/' . self::REPO . '/releases/latest',
+			array(
+				'timeout' => 6,
+				'headers' => array(
+					'Accept'     => 'application/vnd.github+json',
+					'User-Agent' => 'wp-remarketing-updater',
+				),
+			)
+		);
+
+		if ( is_wp_error( $resp ) ) {
+			$out['error'] = $resp->get_error_message();
+			return $out;
+		}
+
+		$out['http'] = (int) wp_remote_retrieve_response_code( $resp );
+		$data        = json_decode( wp_remote_retrieve_body( $resp ), true );
+
+		if ( is_array( $data ) && ! empty( $data['tag_name'] ) ) {
+			$out['latest'] = ltrim( sanitize_text_field( $data['tag_name'] ), 'vV' );
+		} elseif ( is_array( $data ) && ! empty( $data['message'] ) ) {
+			$out['error'] = sanitize_text_field( $data['message'] );
+		} else {
+			$out['error'] = __( 'GitHub yanıtı okunamadı.', 'wp-remarketing' );
+		}
+
+		// Fresh result also primes the updater cache so the normal flow benefits.
+		if ( '' !== $out['latest'] ) {
+			delete_transient( self::TRANSIENT );
+		}
+		return $out;
+	}
 }
