@@ -12,35 +12,136 @@
 	font-family: Consolas, Menlo, monospace;
 }
 
+.wprem-range {
+	margin: 6px 0 14px;
+	color: #646970;
+}
+
+/* ---- Metric cards ---- */
 .wprem-cards {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-	margin: 18px 0 8px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 14px;
+	margin: 18px 0 10px;
+	max-width: 1100px;
 }
 
 .wprem-card {
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	min-width: 130px;
-	padding: 14px 16px;
+	padding: 16px 18px;
 	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 6px;
+	border: 1px solid #e2e4e7;
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+	overflow: hidden;
+	transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.wprem-card:hover {
+	box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+	transform: translateY(-1px);
+}
+
+/* colored accent bar on the left */
+.wprem-card::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: var(--wprem-accent, #2271b1);
+}
+
+.wprem-card-ico {
+	font-size: 20px;
+	line-height: 1;
+	margin-bottom: 8px;
 }
 
 .wprem-card-num {
-	font-size: 22px;
-	font-weight: 600;
-	line-height: 1.2;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.1;
+	color: #1d2327;
+	letter-spacing: -.5px;
 }
 
 .wprem-card-lbl {
 	margin-top: 4px;
 	color: #646970;
 	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: .3px;
 }
 
-.wprem-range {
-	margin: 6px 0 4px;
+/* accent palette */
+.wprem-c-blue   { --wprem-accent: #2271b1; }
+.wprem-c-green  { --wprem-accent: #18a957; }
+.wprem-c-orange { --wprem-accent: #e08c00; }
+.wprem-c-purple { --wprem-accent: #7a3ff2; }
+.wprem-c-teal   { --wprem-accent: #1098ad; }
+.wprem-c-gray   { --wprem-accent: #8c8f94; }
+.wprem-c-red    { --wprem-accent: #d63638; }
+
+/* ---- Tables ---- */
+.wprem-wrap table.widefat {
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+.wprem-wrap table.widefat thead th {
+	background: #f6f7f7;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+/* platform / kaynak badge */
+.wprem-badge {
+	display: inline-block;
+	padding: 2px 9px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #eef1f5;
+	color: #3c434a;
+}
+
+.wprem-badge.is-mobil   { background: #e6f4ec; color: #18733f; }
+.wprem-badge.is-masaustu{ background: #e7f0f9; color: #1a5a8f; }
+.wprem-badge.is-tablet  { background: #f1e9fc; color: #5a2db8; }
+
+/* ---- Dashboard widget ---- */
+.wprem-dash {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+	margin-bottom: 12px;
+}
+
+.wprem-dash-item {
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-radius: 8px;
+	border-left: 4px solid var(--wprem-accent, #2271b1);
+}
+
+.wprem-dash-num {
+	display: block;
+	font-size: 20px;
+	font-weight: 700;
+	color: #1d2327;
+	line-height: 1.1;
+}
+
+.wprem-dash-lbl {
+	display: block;
+	margin-top: 3px;
+	font-size: 11px;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: .3px;
 }

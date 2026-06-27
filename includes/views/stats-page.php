@@ -34,16 +34,20 @@ $base = admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE );
 	<div class="wprem-cards">
 		<?php
 		$cards = array(
-			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ) ),
-			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ) ),
-			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( $sessions ) ),
-			array( __( 'Sepete ekleme', 'wp-remarketing' ), number_format_i18n( (int) ( $t['atc'] ?? 0 ) ) ),
-			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( $purchases ) ),
-			array( __( 'Dönüşüm', 'wp-remarketing' ), $conv . '%' ),
-			array( __( 'Ciro', 'wp-remarketing' ), WPREM_Stats::money( $t['revenue'] ?? 0 ) ),
+			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ), '👥', 'green' ),
+			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ), '🤖', 'gray' ),
+			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( $sessions ), '🔗', 'blue' ),
+			array( __( 'Sepete ekleme', 'wp-remarketing' ), number_format_i18n( (int) ( $t['atc'] ?? 0 ) ), '🛒', 'orange' ),
+			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( $purchases ), '✅', 'green' ),
+			array( __( 'Dönüşüm', 'wp-remarketing' ), $conv . '%', '📈', 'purple' ),
+			array( __( 'Ciro', 'wp-remarketing' ), WPREM_Stats::money( $t['revenue'] ?? 0 ), '💰', 'teal' ),
 		);
 		foreach ( $cards as $c ) {
-			echo '<div class="wprem-card"><span class="wprem-card-num">' . esc_html( $c[1] ) . '</span><span class="wprem-card-lbl">' . esc_html( $c[0] ) . '</span></div>';
+			echo '<div class="wprem-card wprem-c-' . esc_attr( $c[3] ) . '">';
+			echo '<span class="wprem-card-ico">' . esc_html( $c[2] ) . '</span>';
+			echo '<span class="wprem-card-num">' . esc_html( $c[1] ) . '</span>';
+			echo '<span class="wprem-card-lbl">' . esc_html( $c[0] ) . '</span>';
+			echo '</div>';
 		}
 		?>
 	</div>
@@ -67,11 +71,12 @@ $base = admin_url( 'options-general.php?page=' . WPREM_Stats::PAGE );
 			$src   = ( $a['utm_source'] ? $a['utm_source'] : '(doğrudan)' ) . ' / ' . ( $a['utm_medium'] ? $a['utm_medium'] : '-' );
 			$camp  = $a['utm_campaign'] ? $a['utm_campaign'] : '—';
 			$dev   = $a['device'] ? $a['device'] : '(bilinmiyor)';
+			$devcl = 'is-' . str_replace( array( 'ü', 'Ü' ), 'u', mb_strtolower( $dev, 'UTF-8' ) );
 			?>
 			<tr>
 				<td><?php echo esc_html( $a['last_seen'] ); ?></td>
 				<td><?php echo esc_html( $il . $ilce ); ?></td>
-				<td><?php echo esc_html( $dev ); ?></td>
+				<td><span class="wprem-badge <?php echo esc_attr( $devcl ); ?>"><?php echo esc_html( $dev ); ?></span></td>
 				<td><?php echo esc_html( $src ); ?></td>
 				<td><?php echo esc_html( $camp ); ?></td>
 				<td><?php echo esc_html( number_format_i18n( (int) $a['atc_count'] ) ); ?></td>

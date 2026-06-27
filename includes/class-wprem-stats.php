@@ -40,24 +40,28 @@ class WPREM_Stats {
 		$abandoned = count( (array) $this->abandoned( $since ) );
 
 		$rows = array(
-			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ) ),
-			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( (int) ( $t['sessions'] ?? 0 ) ) ),
-			array( __( 'Sepette bırakan', 'wp-remarketing' ), number_format_i18n( $abandoned ) ),
-			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( (int) ( $t['purchases'] ?? 0 ) ) ),
-			array( __( 'Ciro', 'wp-remarketing' ), self::money( $t['revenue'] ?? 0 ) ),
-			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ) ),
+			array( __( 'Gerçek ziyaretçi', 'wp-remarketing' ), number_format_i18n( (int) ( $t['visitors'] ?? 0 ) ), 'green' ),
+			array( __( 'Oturum', 'wp-remarketing' ), number_format_i18n( (int) ( $t['sessions'] ?? 0 ) ), 'blue' ),
+			array( __( 'Sepette bırakan', 'wp-remarketing' ), number_format_i18n( $abandoned ), 'orange' ),
+			array( __( 'Satış', 'wp-remarketing' ), number_format_i18n( (int) ( $t['purchases'] ?? 0 ) ), 'green' ),
+			array( __( 'Ciro', 'wp-remarketing' ), self::money( $t['revenue'] ?? 0 ), 'teal' ),
+			array( __( 'Bot', 'wp-remarketing' ), number_format_i18n( (int) ( $t['bot_hits'] ?? 0 ) ), 'gray' ),
 		);
 
-		echo '<table class="widefat striped"><tbody>';
+		echo '<div class="wprem-dash">';
 		foreach ( $rows as $r ) {
-			echo '<tr><td>' . esc_html( $r[0] ) . '</td><td style="text-align:right"><strong>' . esc_html( $r[1] ) . '</strong></td></tr>';
+			echo '<div class="wprem-dash-item wprem-c-' . esc_attr( $r[2] ) . '">';
+			echo '<span class="wprem-dash-num">' . esc_html( $r[1] ) . '</span>';
+			echo '<span class="wprem-dash-lbl">' . esc_html( $r[0] ) . '</span>';
+			echo '</div>';
 		}
-		echo '</tbody></table>';
-		echo '<p style="margin-top:10px"><a href="' . esc_url( admin_url( 'options-general.php?page=' . self::PAGE ) ) . '">' . esc_html__( 'Tüm istatistikler →', 'wp-remarketing' ) . '</a></p>';
+		echo '</div>';
+		echo '<p style="margin:4px 0 0"><a href="' . esc_url( admin_url( 'options-general.php?page=' . self::PAGE ) ) . '">' . esc_html__( 'Tüm istatistikler →', 'wp-remarketing' ) . '</a></p>';
 	}
 
 	public function assets( $hook ) {
-		if ( 'settings_page_' . self::PAGE !== $hook ) {
+		// Stats page and the Dashboard (widget) both use the styles.
+		if ( 'settings_page_' . self::PAGE !== $hook && 'index.php' !== $hook ) {
 			return;
 		}
 		wp_enqueue_style( 'wprem-admin', WPREM_URL . 'assets/admin.css', array(), WPREM_VERSION );
